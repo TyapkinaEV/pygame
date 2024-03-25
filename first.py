@@ -337,7 +337,9 @@ def choice_level(level):
     direct = 0
     count = 0
     speed = 0
+    bros = 0
     fl = 'n'
+    flag = ''
     t = ''
     first = second = 0
     name = 'Не определен'
@@ -361,9 +363,10 @@ def choice_level(level):
                     if event.ui_element == rule:
                         rule_screen()
                     if event.ui_element == dice:
+                        bros += 1
                         first = random.randint(1,6)
                         second = random.randint(1,6)
-                        count += first + second
+                        count = first + second
                         t = ''
                     if event.ui_element == turn_left:
                         flag = 'l'
@@ -406,38 +409,46 @@ def choice_level(level):
                         flag = 'up'
                         if speed == 3:
                             text = font.render(f'Скорость больше 3 не предусмотрена', 1, (255, 255, 255))
-                        if flag == fl:
-                            text = font.render(f'Повторный разгон в одной клетке стоит дороже', 1, (255, 255, 255))
-                            pygame.time.delay(3000)
-                            price = is_enough(2, flag, speed, player, land_group)
-                        else:
-                            price = is_enough(1, flag, speed, player, land_group)
-                        if price > count:
-                            text = font.render(f'Цена действия {price} очков. Осталось очков: {count}. '
-                                               f'Кидайте кубики', 1, (255, 255, 255))
                             t = '1'
                         else:
-                            count -= price
-                            sum_count += price
-                            speed += 1
-                            t = ''
+                            if flag == fl:
+                                text = font.render(f'Повторный разгон в одной клетке стоит дороже', 1, (255, 255, 255))
+                                t = '1'
+                                price = is_enough(2, flag, speed, player, land_group)
+                            else:
+                                price = is_enough(1, flag, speed, player, land_group)
+                            if price > count:
+                                text = font.render(f'Цена действия {price} очков. Осталось очков: {count}. '
+                                                   f'Кидайте кубики', 1, (255, 255, 255))
+                                t = '1'
+                            else:
+                                count -= price
+                                sum_count += price
+                                speed += 1
+                                t = ''
                     if event.ui_element == lower_transmission:
                         flag = 'down'
-                        if flag == fl:
-                            text = font.render(f'Повторное торможение в одной клетке стоит дороже', 1, (255, 255, 255))
-                            pygame.time.delay(3000)
-                            price = is_enough(2, flag, speed, player, land_group)
-                        else:
-                            price = is_enough(1, flag, speed, player, land_group)
-                        if price > count:
-                            text = font.render(f'Цена действия {price} очков. Осталось очков: {count}. '
-                                               f'Кидайте кубики', 1, (255, 255, 255))
+                        if speed == 0:
+                            text = font.render(f'Отрицательная скорость не предусмотрена', 1, (255, 255, 255))
                             t = '1'
                         else:
-                            count -= price
-                            sum_count += price
-                            speed -= 1
-                            t = ''
+                            if flag == fl:
+                                font = pygame.font.Font(None, 24)
+                                text = font.render(f'Повторное торможение в одной клетке стоит дороже', 1, (255, 255, 255))
+                                screen.blit(text, (25, 620))
+                                pygame.time.delay(3000)
+                                price = is_enough(2, flag, speed, player, land_group)
+                            else:
+                                price = is_enough(1, flag, speed, player, land_group)
+                            if price > count:
+                                text = font.render(f'Цена действия {price} очков. Осталось очков: {count}. '
+                                                   f'Кидайте кубики', 1, (255, 255, 255))
+                                t = '1'
+                            else:
+                                count -= price
+                                sum_count += price
+                                speed -= 1
+                                t = ''
                     if event.ui_element == forward:
                         flag = 'f'
                         if speed == 0:
@@ -453,10 +464,17 @@ def choice_level(level):
                                 count -= price
                                 sum_count += price
                                 t = ''
-                                player.update(del_x, del_y)
+                                if (0 <= player.rect.x + del_x <= 600 - TILE_SIZE and
+                                    0 <= player.rect.y + del_y <= 600 - TILE_SIZE):
+                                    player.update(del_x, del_y)
+                                else:
+                                    text = font.render(f'Выезд за пределы карты запрещен', 1, (255, 255, 255))
+                                    t = '1'
                     # del_x, del_y = delta(direct)
             manager.process_events(event)
         manager.update(time_delta)
+        if flag:
+            fl = flag
         screen.fill((76,75, 80))
         tiles_group.draw(screen)
         player_group.draw(screen)
@@ -476,8 +494,10 @@ def choice_level(level):
         screen.blit(text, (25, 620))
         pygame.display.update()
         if pygame.sprite.spritecollideany(player, finish_group):
+            screen.fill((146, 188, 214))
             font = pygame.font.Font(None, 24)
-            text = font.render(f'Гонка завершена! Ваш результат {sum_count} очков', 1, (255, 255, 255))
+            text = font.render(f'Гонка завершена! Ваш результат {sum_count} очков, сделано {bros} бросков',
+                               1, (78, 78, 78))
             screen.blit(text, (25, 620))
             pygame.time.delay(3000)
             with open("data\\records.txt", 'r', encoding="utf8") as output_file:
@@ -486,15 +506,13 @@ def choice_level(level):
                     inf.append(line.strip().split('\t'))
                 if len(inf[-1]) == 0:
                    a = inf.pop()
-                inf.append([str(choice_lev), name, str(sum_count)])
+                inf.append([str(choice_lev), name, str(sum_count), str(bros)])
             inf = [inf[0]] + sorted(inf[1:], key=lambda x: int(x[2]))
-            inf_result = [' '.join(x) for x in inf]
+            inf_result = [' '.join(x) for x in inf[:6]]
             result_screen(inf_result)
             with open('data\\records.txt', 'w', encoding="utf8") as f:
                 for x in inf[:6]:
-
                     print('\t'.join(x), file=f)
-
             all_sprites.empty()
             player_group.empty()
             tiles_group.empty()
