@@ -404,6 +404,8 @@ def choice_level(level):
                                 t = ''
                     if event.ui_element == boost_transmission:
                         flag = 'up'
+                        if speed == 3:
+                            text = font.render(f'Скорость больше 3 не предусмотрена', 1, (255, 255, 255))
                         if flag == fl:
                             text = font.render(f'Повторный разгон в одной клетке стоит дороже', 1, (255, 255, 255))
                             pygame.time.delay(3000)
