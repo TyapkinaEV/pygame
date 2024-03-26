@@ -5,7 +5,10 @@ import pygame_gui
 import random
 
 pygame.init()
-
+about_text = ["", "", "Разработчик: Тяпкина Екатерина Владимировна", "Город Саратов",
+              "В рамках обучения по проекту 'Яндекс Лицей'",
+              "Тестовая версия программы содержит промежуточные линии финиша",
+              "Для полной версии замените 4 на 1 в файлах location_N"]
 # Основные настройки
 size = width, height = 880, 660
 screen = pygame.display.set_mode(size)
@@ -121,12 +124,12 @@ def rule_screen():
 # Функция с мини-циклом вывода окна результатов
 def result_screen(intro_text):
     # формирование окна с кнопкой
-    result_window = pygame.Surface((400, 450))
+    result_window = pygame.Surface((600, 450))
     result_window.fill((78, 78, 78))
     font = pygame.font.Font(None, 50)
     textOK = font.render('OK', 1, (250, 250, 250))
-    pygame.draw.rect(result_window, 'grey', (350, 400, 50, 50), 0)
-    result_window.blit(textOK, (352, 412))
+    pygame.draw.rect(result_window, 'grey', (550, 400, 50, 50), 0)
+    result_window.blit(textOK, (552, 412))
     screen.blit(result_window, (10, 10))
 
     # Заготовка для текста
@@ -146,7 +149,7 @@ def result_screen(intro_text):
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.MOUSEBUTTONUP:
-                if event.pos[0] in range(360, 410) and event.pos[1] in range(410, 461):
+                if event.pos[0] in range(560, 610) and event.pos[1] in range(410, 461):
                     return  # переход к следующему окну
         pygame.display.flip()
         clock.tick(FPS)
@@ -504,12 +507,12 @@ def choice_level(level):
                 inf = []
                 for line in output_file:
                     inf.append(line.strip().split('\t'))
-                if len(inf[-1]) == 0:
+                if len(inf[-1]) == 1:
                    a = inf.pop()
                 inf.append([str(choice_lev), name, str(sum_count), str(bros)])
             inf = [inf[0]] + sorted(inf[1:], key=lambda x: int(x[2]))
             inf_result = [' '.join(x) for x in inf[:6]]
-            result_screen(inf_result)
+            result_screen(inf_result + about_text)
             with open('data\\records.txt', 'w', encoding="utf8") as f:
                 for x in inf[:6]:
                     print('\t'.join(x), file=f)
